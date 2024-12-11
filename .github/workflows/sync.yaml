@@ -1,0 +1,18 @@
+name: Sync Fork's master branch with upstream
+
+on:
+  schedule:
+    - cron: '0 3 * * MON' # every Monday at 3am
+  workflow_dispatch: # on button click
+
+jobs:
+  sync:
+
+    runs-on: [self-hosted, ADC]
+
+    steps:
+      - uses: tgymnich/fork-sync@v1.8
+        with:
+          owner: dev-cs-confidential
+          base: master
+          head: master
