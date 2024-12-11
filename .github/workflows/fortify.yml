@@ -1,0 +1,44 @@
+name: Fortify Scan
+
+on:
+   push:
+      branches:
+      - SCAN_FORTIFY
+   workflow_dispatch:
+
+jobs:
+  task-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kentaro-m/task-completed-checker-action@v0.1.2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+           
+  fortify_scan:
+    runs-on: [self-hosted, ADC]
+    permissions: write-all
+
+    steps:
+        
+    - name: Check out source code
+      uses: actions/checkout@v4  
+      with: 
+        path: ${{ github.sha }}
+
+    - name: Run Fortify SAST Scan
+      env:
+         SSC_URL: ${{vars.SSC_URL}}
+         SSC_TOKEN: ${{secrets.SSC_TOKEN}}
+         SC_SAST_TOKEN: ${{secrets.SC_SAST_CLIENT_AUTH_TOKEN}}
+         SSC_APPVERSION: ${{vars.SCC_APP_VERSION}}
+      run: |
+         export BRANCH=$(echo $GITHUB_REF | cut -d'/' -f3)
+         echo "Running on Branch: $BRANCH"
+         export PATH=$PATH:/opt/fortify/bin
+         echo "Updating ruleset"
+         fortifyupdate -url $SSC_URL -acceptSSLCertificate -acceptKey
+         echo "Cleaning existing analysis"
+         sourceanalyzer -b $SSC_APPVERSION -clean
+         echo "Running sourceanalyzer"
+         sourceanalyzer -b $SSC_APPVERSION **/*.java
+         scancentral -sscurl $SSC_URL -ssctoken $SSC_TOKEN start -upload -application $SSC_APPVERSION --application-version  $BRANCH -uptoken $SSC_TOKEN -b $SSC_APPVERSION -scan
