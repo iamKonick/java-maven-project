@@ -1,0 +1,14 @@
+name: Reviewdog Checkstyle review
+on: [pull_request]
+jobs:
+  checkstyle:
+    name: runner / checkstyle
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dbelyaev/action-checkstyle@master
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          level: warning
+          filter_mode: diff_context
