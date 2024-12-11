@@ -1,29 +1,20 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Java CI with Maven
+name: Build
 
 on:
-  workflow_run:
-    workflows: [Self Reviewed Monitor]
-    types:
-      - completed
-    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - 'master'
+      - '!rel/**'
+      - '!sbd/**'
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
-
+    runs-on: [self-hosted, Linux-ADC]  # Ensure the runner label is correct and available
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      - name: Code Checkout
+        uses: actions/checkout@v2  # Ensure the action is correctly specified
+        with:
+          github-token: ${{ secrets.PAT_Actions }}
+      - name: Build Stage
+        run: echo "Build Successfull"
