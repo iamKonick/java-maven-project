@@ -1,9 +1,12 @@
-# .github/workflows/post-initial-comment.yml
-name: Comment
+name: Review Comment
 
 on:
   pull_request:
     types: [opened, synchronize]
+    branches:
+      - 'master'
+      - 'rel/**'
+      - '!sbd/**'
 
 permissions:
   contents: write
@@ -11,7 +14,7 @@ permissions:
 
 jobs:
   post-comment:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux-ADC]
 
     steps:
       - name: Post Checklist Comment
@@ -20,5 +23,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            ### Progress Checklist
             - Please perform a thorough self-review of your pull request before submitting it for further review. Once completed, enter the comment: /self-reviewed
