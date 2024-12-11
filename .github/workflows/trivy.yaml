@@ -1,0 +1,50 @@
+name: Security Check (Trivy)
+on:
+    pull_request:
+       types: [opened, edited]
+    workflow_dispatch:
+ 
+jobs:
+  task-check:
+    runs-on: [self-hosted, ADC]
+    steps:
+      - uses: kentaro-m/task-completed-checker-action@v0.1.2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+  check_vulnerabilities:
+    name: Check vulnerabilities
+    runs-on: [self-hosted, ADC]
+    steps:
+
+      - name: Setup Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+    
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.sha }}
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: "table"
+          output: trivy.txt
+          severity: 'CRITICAL'
+          skip-setup-trivy: true
+
+      - name: Format Trivy Scan Result
+        run: |
+            if [ -s trivy.txt ]; then
+              echo -e "## Vulnerability Scan Results\n<details><summary>Details</summary>\n\n\`\`\`\n$(cat trivy.txt)\n\`\`\`\n</details>" > formatted-trivy-result.md
+            else
+              echo -e "## Vulnerability Scan Results\nNo vulnerabilities were detected." > formatted-trivy-result.md
+            fi
+
+      - name: Comment PR with Trivy Results
+        uses: thollander/actions-comment-pull-request@v3
+        # Put output through env variable to make it robust to quotes
+        with:
+            file-path: formatted-trivy-result.md
