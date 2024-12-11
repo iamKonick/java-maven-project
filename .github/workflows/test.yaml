@@ -1,0 +1,21 @@
+name: Unit Tests
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - '!master'
+      - '!rel/**'
+      - '!sbd/**'
+      - '!workflow/**'
+jobs:
+  run_tests:
+    runs-on: [self-hosted, Linux-ADC]
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          github-token: ${{ secrets.PAT_Actions }}
+      - name: Test Stage
+        run: echo "Test Successfull"
+        
